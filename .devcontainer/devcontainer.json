@@ -16,7 +16,12 @@
 	// ]
 
 	"runArgs": [
-		"--network=devcontainer-network"
+		"--network=devcontainer-network",
+		// Map sound devices (doesn't work on Windows, see https://github.com/microsoft/WSL/issues/689)
+        "--device=/dev/snd:/dev/snd",
+		//"--net", "host",
+		"-e", "DISPLAY=${env:DISPLAY}",
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix"
 	],
 	"customizations": {
 		"vscode": {
