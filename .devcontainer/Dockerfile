@@ -22,4 +22,10 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get -y upgrade \
     libxcursor-dev \
     libxrandr-dev \
     libxi-dev \
-    mesa-vulkan-drivers
+    mesa-vulkan-drivers \
+    lld \
+    clang \
+    build-essentials
+
+# Cargo tools for nightly
+RUN rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu && rustup component add clippy --toolchain nightly-x86_64-unknown-linux-gnu
