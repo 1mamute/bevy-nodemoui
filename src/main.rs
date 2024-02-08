@@ -1,14 +1,14 @@
-mod camera;
 mod diagnostics;
+mod ui;
 
 use bevy::{app::App, DefaultPlugins};
 
-use camera::CameraPlugin;
 use diagnostics::DiagnosticsPlugin;
+use ui::UIPlugin;
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins((DefaultPlugins, CameraPlugin));
+    app.add_plugins((DefaultPlugins, UIPlugin));
 
     // Adiciona os plugins de diagnóstico apenas em modo debug
     #[cfg(debug_assertions)]
