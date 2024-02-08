@@ -1,15 +1,17 @@
-use bevy::{app::{App, Startup, Update}, ecs::{component::Component, query::With, schedule::IntoSystemConfigs, system::{Commands, Query}}, DefaultPlugins};
+use bevy::{app::{App, Plugin, Startup, Update}, ecs::{component::Component, query::With, system::{Commands, Query}}, DefaultPlugins};
+
+pub struct HelloPlugin;
+impl Plugin for HelloPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, add_people)
+           .add_systems(Update, greet_people);
+    }
+}
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, add_people)
-        .add_systems(Update, (hello_world, (update_people, greet_people).chain()))
+        .add_plugins((DefaultPlugins, HelloPlugin))
         .run();
-}
-
-fn hello_world() {
-    println!("hello world!");
 }
 
 fn add_people(mut commands: Commands) {
@@ -22,16 +24,6 @@ fn add_people(mut commands: Commands) {
 fn greet_people(query: Query<&Name, With<Person>>) {
     for name in &query {
         println!("hello {}!", name.0);
-    }
-}
-
-fn update_people(mut query: Query<&mut Name, With<Person>>) {
-    for mut name in &mut query {
-        if name.0 == "Elaina Proctor" {
-            name.0 = "Elaina Hume".to_string();
-            break; // We don’t need to change any other names
-        }
-        println!("Not found Elaine Proctor!");
     }
 }
 

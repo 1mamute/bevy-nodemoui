@@ -19,9 +19,12 @@
 		"--network=devcontainer-network",
 		// Map sound devices (doesn't work on Windows, see https://github.com/microsoft/WSL/issues/689)
         "--device=/dev/snd:/dev/snd",
-		//"--net", "host",
+        "--device=/dev/dri:/dev/dri",
+		// "--net", "host",
 		"-e", "DISPLAY=${env:DISPLAY}",
-        "-v", "/tmp/.X11-unix:/tmp/.X11-unix"
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+		"--gpus", "all",
+        "--privileged"
 	],
 	"customizations": {
 		"vscode": {
@@ -36,6 +39,7 @@
 			]
 		}
 	}
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
