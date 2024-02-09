@@ -24,9 +24,9 @@ fn main() {
         app.add_plugins(DiagnosticsPlugin);
     }
 
+    app.add_plugins(MapPlugin);
     app.add_plugins(UIPlugin);
     app.add_plugins(WorldInspectorPlugin::new());
-    app.add_plugins(MapPlugin);
 
     app.run();
 }

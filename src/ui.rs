@@ -1,10 +1,14 @@
 use bevy::{prelude::*, winit::WinitSettings};
+
+use crate::maps::FloorPlant;
+
 pub struct UIPlugin;
 
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(WinitSettings::desktop_app())
             .add_systems(Startup, setup)
+            .add_systems(PostStartup, button_map_renders)
             .add_systems(Update, button_system);
     }
 }
@@ -13,10 +17,17 @@ const PRESSED_BUTTON: Color = Color::rgb(1.0, 0.65, 0.65);
 const HOVERED_BUTTON: Color = Color::rgb(0.8, 0.65, 0.65);
 const NORMAL_BUTTON: Color = Color::rgb(0.65, 0.65, 0.65);
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
+}
 
-    // Root UI Node
+fn button_map_renders(
+    asset_server: Res<AssetServer>,
+    mut commands: Commands,
+    map_query: Query<(&Name, With<FloorPlant>)>,
+) {
+    // Root UI Node for Map Buttons
+    info!("running ");
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -30,29 +41,33 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .with_children(|parent| {
             // For each map, create a button like this
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.0),
-                        height: Val::Px(65.0),
-                        border: UiRect::all(Val::Px(5.0)),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Map Name",
-                        TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                            font_size: 40.0,
-                            color: Color::WHITE,
+            // Para cada MapBundle, criar um botão
+            for (name, _) in map_query.iter() {
+                info!("Found map: {:?}", name);
+                parent
+                    .spawn(ButtonBundle {
+                        style: Style {
+                            width: Val::Px(150.0),
+                            height: Val::Px(65.0),
+                            border: UiRect::all(Val::Px(5.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
                         },
-                    ));
-                });
+                        background_color: NORMAL_BUTTON.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(TextBundle::from_section(
+                            name.as_str(),
+                            TextStyle {
+                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        ));
+                    });
+            }
         });
 }
 

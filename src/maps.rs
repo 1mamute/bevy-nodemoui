@@ -16,7 +16,7 @@ const MAP_NAMES: [&str; 6] = [
 ];
 
 #[derive(Component, Debug)]
-struct FloorPlant(Handle<Image>);
+pub struct FloorPlant(Handle<Image>);
 
 #[derive(Bundle)]
 struct MapBundle {
