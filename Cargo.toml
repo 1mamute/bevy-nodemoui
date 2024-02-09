@@ -21,6 +21,10 @@ opt-level = 1
 opt-level = 3
 
 [lints.clippy]
+# This lint usually gives bad advice in the context of Bevy -- hiding complex queries behind
+# type aliases tends to obfuscate code while offering no improvement in code cleanliness.
+type_complexity = "allow"
 too_many_lines = "allow"
 module_name_repetitions = "allow" # Bevy uses the Suffix `Plugin` for plugins structs.
-# pedantic = "warn"
+manual-strip = "allow"
+pedantic = "warn"

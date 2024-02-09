@@ -7,6 +7,7 @@ use bevy::{
         component::Component,
         system::{Commands, Res},
     },
+    log::info,
     render::texture::Image,
 };
 
@@ -26,7 +27,7 @@ struct MapBundle {
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     for map in MAP_NAMES {
-        println!("Found {:?}", map);
+        info!("Creating map entity for {:?} map", map);
         let floor_plant_handle: Handle<Image> =
             asset_server.load(format!("maps/de_{}_radar.png", map.to_lowercase()));
         commands.spawn(MapBundle {

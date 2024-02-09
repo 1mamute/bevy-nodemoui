@@ -1,6 +1,6 @@
 use bevy::{prelude::*, winit::WinitSettings};
 
-use crate::maps::FloorPlant;
+use crate::{maps::FloorPlant, AppState};
 
 pub struct UIPlugin;
 
@@ -8,8 +8,9 @@ impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(WinitSettings::desktop_app())
             .add_systems(Startup, setup)
-            .add_systems(PostStartup, button_map_renders)
-            .add_systems(Update, button_system);
+            .add_systems(OnEnter(AppState::MainMenu), buttons_setup)
+            .add_systems(Update, buttons_system.run_if(in_state(AppState::MainMenu)))
+            .add_systems(OnExit(AppState::MainMenu), buttons_cleanup);
     }
 }
 
@@ -21,13 +22,16 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
-fn button_map_renders(
+#[derive(Component)]
+struct RootUINode;
+
+fn buttons_setup(
     asset_server: Res<AssetServer>,
     mut commands: Commands,
     map_query: Query<(&Name, With<FloorPlant>)>,
 ) {
+    info!("Entering AppState::MainMenu and Creating UI buttons for maps");
     // Root UI Node for Map Buttons
-    info!("running ");
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -39,11 +43,12 @@ fn button_map_renders(
             },
             ..default()
         })
+        .insert(RootUINode)
         .with_children(|parent| {
             // For each map, create a button like this
             // Para cada MapBundle, criar um botão
-            for (name, _) in map_query.iter() {
-                info!("Found map: {:?}", name);
+            for (name, ()) in map_query.iter() {
+                info!("Creating button for map: {:?}", name);
                 parent
                     .spawn(ButtonBundle {
                         style: Style {
@@ -71,18 +76,20 @@ fn button_map_renders(
         });
 }
 
-fn button_system(
+fn buttons_system(
+    mut next_state: ResMut<NextState<AppState>>,
     mut commands: Commands,
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, Entity),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut color, entity) in interaction_query.iter_mut() {
+    for (interaction, mut color, entity) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 *color = PRESSED_BUTTON.into();
                 commands.entity(entity).despawn_recursive();
+                next_state.set(AppState::DemoPlayback);
             }
             Interaction::Hovered => {
                 *color = HOVERED_BUTTON.into();
@@ -91,5 +98,12 @@ fn button_system(
                 *color = NORMAL_BUTTON.into();
             }
         }
+    }
+}
+
+fn buttons_cleanup(mut commands: Commands, mut buttons_query: Query<Entity, With<RootUINode>>) {
+    info!("Leaving AppState::MainMenu and Despawning UI buttons for maps");
+    for rootuinode in &mut buttons_query {
+        commands.entity(rootuinode).despawn_recursive();
     }
 }

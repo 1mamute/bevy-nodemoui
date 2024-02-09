@@ -2,7 +2,7 @@ mod diagnostics;
 mod maps;
 mod ui;
 
-use bevy::{app::App, DefaultPlugins};
+use bevy::{app::App, ecs::schedule::States, DefaultPlugins};
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -11,9 +11,17 @@ use ui::UIPlugin;
 
 use crate::diagnostics::DiagnosticsPlugin;
 
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+enum AppState {
+    #[default]
+    MainMenu,
+    DemoPlayback,
+}
+
 fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins);
+    app.add_state::<AppState>();
 
     // this code is compiled only if debug assertions are disabled (release mode)
     #[cfg(not(debug_assertions))]
