@@ -10,6 +10,7 @@ bevy = { version = "0.12.1", features = [
     "dynamic_linking", # Dont add "dynamic_linking" to release builds 
 ] }
 bevy-inspector-egui = "0.22.1"
+bevy_screen_diagnostics = "0.4"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
