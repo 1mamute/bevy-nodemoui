@@ -1,5 +1,6 @@
 mod diagnostics;
 mod maps;
+mod playback;
 mod ui;
 
 use bevy::{app::App, ecs::schedule::States, DefaultPlugins};
@@ -7,6 +8,7 @@ use bevy::{app::App, ecs::schedule::States, DefaultPlugins};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use maps::MapPlugin;
+use playback::PlaybackPlugin;
 use ui::UIPlugin;
 
 use crate::diagnostics::DiagnosticsPlugin;
@@ -15,7 +17,7 @@ use crate::diagnostics::DiagnosticsPlugin;
 enum AppState {
     #[default]
     MainMenu,
-    DemoPlayback,
+    Playback,
 }
 
 fn main() {
@@ -34,6 +36,7 @@ fn main() {
 
     app.add_plugins(MapPlugin);
     app.add_plugins(UIPlugin);
+    app.add_plugins(PlaybackPlugin);
     app.add_plugins(WorldInspectorPlugin::new());
 
     app.run();

@@ -1,6 +1,30 @@
-use bevy::{prelude::*, winit::WinitSettings};
+use bevy::{
+    app::{App, Plugin, Startup, Update},
+    asset::AssetServer,
+    core::Name,
+    core_pipeline::core_2d::Camera2dBundle,
+    ecs::{
+        component::Component,
+        entity::Entity,
+        event::EventWriter,
+        query::{Changed, With},
+        schedule::{common_conditions::in_state, IntoSystemConfigs, NextState, OnEnter, OnExit},
+        system::{Commands, Query, Res, ResMut},
+    },
+    hierarchy::{BuildChildren, DespawnRecursiveExt},
+    log::info,
+    prelude::default,
+    render::color::Color,
+    text::TextStyle,
+    ui::{
+        node_bundles::{ButtonBundle, NodeBundle, TextBundle},
+        widget::Button,
+        AlignItems, BackgroundColor, Interaction, JustifyContent, Style, UiRect, Val,
+    },
+    winit::WinitSettings,
+};
 
-use crate::{maps::FloorPlant, AppState};
+use crate::{maps::FloorPlant, playback::MapSelectEvent, AppState};
 
 pub struct UIPlugin;
 
@@ -62,6 +86,7 @@ fn buttons_setup(
                         background_color: NORMAL_BUTTON.into(),
                         ..default()
                     })
+                    .insert(Name::new(format!("{}", name.as_str())))
                     .with_children(|parent| {
                         parent.spawn(TextBundle::from_section(
                             name.as_str(),
@@ -77,19 +102,23 @@ fn buttons_setup(
 }
 
 fn buttons_system(
+    mut event_writer: EventWriter<MapSelectEvent>,
     mut next_state: ResMut<NextState<AppState>>,
     mut commands: Commands,
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, Entity),
+        (&Interaction, &mut BackgroundColor, Entity, &Name),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut color, entity) in &mut interaction_query {
+    for (interaction, mut color, entity, name) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 *color = PRESSED_BUTTON.into();
+                let selected_map_name = Name::new(name.as_str().to_string());
+                info!("Selected {}", selected_map_name);
+                event_writer.send(MapSelectEvent(selected_map_name));
                 commands.entity(entity).despawn_recursive();
-                next_state.set(AppState::DemoPlayback);
+                next_state.set(AppState::Playback);
             }
             Interaction::Hovered => {
                 *color = HOVERED_BUTTON.into();
@@ -101,9 +130,9 @@ fn buttons_system(
     }
 }
 
-fn buttons_cleanup(mut commands: Commands, mut buttons_query: Query<Entity, With<RootUINode>>) {
+fn buttons_cleanup(mut commands: Commands, mut root_node_query: Query<Entity, With<RootUINode>>) {
     info!("Leaving AppState::MainMenu and Despawning UI buttons for maps");
-    for rootuinode in &mut buttons_query {
-        commands.entity(rootuinode).despawn_recursive();
+    for root_node in &mut root_node_query {
+        commands.entity(root_node).despawn_recursive();
     }
 }

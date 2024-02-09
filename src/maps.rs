@@ -17,10 +17,12 @@ const MAP_NAMES: [&str; 6] = [
 ];
 
 #[derive(Component, Debug)]
-pub struct FloorPlant(Handle<Image>);
+pub struct FloorPlant {
+    pub handle: Handle<Image>,
+}
 
 #[derive(Bundle)]
-struct MapBundle {
+pub struct MapBundle {
     name: Name,
     floor_plant: FloorPlant,
 }
@@ -32,7 +34,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             asset_server.load(format!("maps/de_{}_radar.png", map.to_lowercase()));
         commands.spawn(MapBundle {
             name: Name::new(map),
-            floor_plant: FloorPlant(floor_plant_handle),
+            floor_plant: FloorPlant {
+                handle: floor_plant_handle,
+            },
         });
     }
 }

@@ -27,4 +27,5 @@ type_complexity = "allow"
 too_many_lines = "allow"
 module_name_repetitions = "allow" # Bevy uses the Suffix `Plugin` for plugins structs.
 manual-strip = "allow"
+needless_pass_by_value = "allow"  # Bevy uses several passes by value that are incorrect evaluated by clippy
 pedantic = "warn"
