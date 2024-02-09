@@ -1,6 +1,6 @@
 use bevy::{
     app::{App, Plugin, Update},
-    asset::AssetServer,
+    asset::{AssetServer, Handle},
     core::Name,
     ecs::{
         component::Component,
@@ -15,7 +15,7 @@ use bevy::{
     log::info,
     math::Vec3,
     prelude::default,
-    render::{camera::Camera, color::Color},
+    render::{camera::Camera, color::Color, texture::Image},
     sprite::SpriteBundle,
     text::TextStyle,
     transform::components::{GlobalTransform, Transform},
@@ -24,7 +24,7 @@ use bevy::{
         AlignContent, AlignItems, AlignSelf, BorderColor, FlexDirection, JustifyContent, Style,
         UiRect, Val,
     },
-    window::Window,
+    window::{Window, WindowResized},
 };
 
 use crate::{maps::FloorPlant, AppState};
@@ -34,10 +34,13 @@ pub struct PlaybackPlugin;
 impl Plugin for PlaybackPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::Playback), playback_setup)
-            .add_systems(Update, draw_cursor.run_if(in_state(AppState::Playback)))
             .add_systems(
                 Update,
-                update_selected_map_on_event.run_if(in_state(AppState::Playback)),
+                (
+                    draw_cursor.run_if(in_state(AppState::Playback)),
+                    update_selected_map_on_event.run_if(in_state(AppState::Playback)),
+                    on_resize_window.run_if(in_state(AppState::Playback)),
+                ),
             );
         //TODO: .add_systems(OnExit(AppState::MainMenu), playback_cleanup);
 
@@ -178,4 +181,33 @@ fn draw_cursor(
     };
 
     gizmos.circle_2d(point, 10., Color::WHITE);
+}
+
+// This system shows how to respond to a window being resized.
+// Whenever the window is resized, the text will update with the new resolution.
+fn on_resize_window(
+    mut floor_plant_sprite_query: Query<&mut Transform, With<Handle<Image>>>,
+    mut resize_reader: EventReader<WindowResized>,
+) {
+    match floor_plant_sprite_query.get_single_mut() {
+        Ok(mut floor_plant_transform) => {
+            for resize in resize_reader.read() {
+                // When resolution is being changed
+                info!(
+                    "Resizing floor plant to {:?} x {:?}",
+                    resize.height, resize.width
+                );
+
+                // Exemplo: suaImagem.scale(novaLargura / larguraImagemOriginal, novaAltura / alturaImagemOriginal);
+                floor_plant_transform.scale.y = resize.height / 1024_f32;
+                floor_plant_transform.scale.x = resize.width / 1024_f32;
+            }
+        }
+        Err(QuerySingleError::NoEntities(_)) => {
+            println!("Error: There is no root_node_entity!");
+        }
+        Err(QuerySingleError::MultipleEntities(_)) => {
+            println!("Error: There is more than one root_node_entity!");
+        }
+    };
 }

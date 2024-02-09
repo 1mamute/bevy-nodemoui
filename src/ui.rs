@@ -104,20 +104,19 @@ fn buttons_setup(
 fn buttons_system(
     mut event_writer: EventWriter<MapSelectEvent>,
     mut next_state: ResMut<NextState<AppState>>,
-    mut commands: Commands,
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, Entity, &Name),
+        (&Interaction, &mut BackgroundColor, &Name),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut color, entity, name) in &mut interaction_query {
+    for (interaction, mut color, name) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 *color = PRESSED_BUTTON.into();
                 let selected_map_name = Name::new(name.as_str().to_string());
                 info!("Selected {}", selected_map_name);
+                //TODO: don't know if this is right because we are getting "there is no root_node_entity in the playback.rs resize window function"
                 event_writer.send(MapSelectEvent(selected_map_name));
-                commands.entity(entity).despawn_recursive();
                 next_state.set(AppState::Playback);
             }
             Interaction::Hovered => {
