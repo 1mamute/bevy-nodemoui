@@ -12,7 +12,7 @@ fn main() {
     app.add_plugins((DefaultPlugins, UIPlugin));
     app.add_plugins(WorldInspectorPlugin::new());
 
-    // Adiciona os plugins de diagnóstico apenas em modo debug
+    // Only add diagnostics plugin in debug mode
     #[cfg(debug_assertions)]
     {
         app.add_plugins(DiagnosticsPlugin);

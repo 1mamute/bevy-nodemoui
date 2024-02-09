@@ -8,11 +8,6 @@ impl Plugin for UIPlugin {
     }
 }
 
-#[derive(Component, Default)]
-struct ScrollingList {
-    // position: f32,
-}
-
 fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
 
