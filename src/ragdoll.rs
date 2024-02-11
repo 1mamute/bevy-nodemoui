@@ -50,9 +50,9 @@ fn ragdoll_spawn(
         // Spawn Circle
         commands
             .spawn(MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(50.).into()).into(),
+                mesh: meshes.add(shape::Circle::new(7.).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::PURPLE)),
-                transform: Transform::from_translation(Vec3::new(-150., 0., 0.)),
+                transform: Transform::from_translation(Vec3::new(-150., 0., 1.)),
                 ..default()
             })
             .insert(event.0.clone());
