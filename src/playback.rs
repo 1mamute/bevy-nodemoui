@@ -200,7 +200,7 @@ fn on_resize_window(
 
                 // Exemplo: suaImagem.scale(novaLargura / larguraImagemOriginal, novaAltura / alturaImagemOriginal);
                 floor_plant_transform.scale.y = resize.height / 1024_f32;
-                floor_plant_transform.scale.x = resize.width / 1024_f32;
+                floor_plant_transform.scale.x = resize.height / 1024_f32;
             }
         }
         Err(QuerySingleError::NoEntities(_)) => {
