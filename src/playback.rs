@@ -12,7 +12,7 @@ use bevy::{
     },
     gizmos::gizmos::Gizmos,
     hierarchy::BuildChildren,
-    log::info,
+    log::{debug, info},
     math::Vec3,
     prelude::default,
     render::{camera::Camera, color::Color, texture::Image},
@@ -21,8 +21,7 @@ use bevy::{
     transform::components::{GlobalTransform, Transform},
     ui::{
         node_bundles::{NodeBundle, TextBundle},
-        AlignContent, AlignItems, AlignSelf, BorderColor, FlexDirection, JustifyContent, Style,
-        UiRect, Val,
+        AlignContent, AlignItems, AlignSelf, FlexDirection, JustifyContent, Style, Val,
     },
     window::{Window, WindowResized},
 };
@@ -59,7 +58,6 @@ fn playback_setup(mut commands: Commands) {
     // Root UI Node for Map Buttons
     commands
         .spawn(NodeBundle {
-            border_color: BorderColor(Color::GREEN),
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
@@ -67,7 +65,6 @@ fn playback_setup(mut commands: Commands) {
                 align_items: AlignItems::Center,
                 align_content: AlignContent::Center,
                 justify_content: JustifyContent::FlexStart,
-                border: UiRect::all(Val::Px(1.0)),
                 ..default()
             },
             ..default()
@@ -97,11 +94,8 @@ fn update_selected_map_on_event(
                                 // Playback Root UI Node
                                 root_node
                                     .spawn(NodeBundle {
-                                        border_color: BorderColor(Color::RED),
                                         style: Style {
                                             align_self: AlignSelf::FlexStart,
-                                            border: UiRect::all(Val::Px(1.0)),
-                                            // justify_content: JustifyContent::FlexStart,
                                             ..default()
                                         },
                                         ..default()
@@ -110,11 +104,8 @@ fn update_selected_map_on_event(
                                         // Map Floor Plant
                                         parent
                                             .spawn(NodeBundle {
-                                                border_color: BorderColor(Color::RED),
                                                 style: Style {
                                                     align_self: AlignSelf::FlexStart,
-                                                    border: UiRect::all(Val::Px(1.0)),
-                                                    // justify_content: JustifyContent::FlexStart,
                                                     ..default()
                                                 },
                                                 ..default()
@@ -130,11 +121,8 @@ fn update_selected_map_on_event(
                                         // Map Name
                                         parent
                                             .spawn(NodeBundle {
-                                                border_color: BorderColor(Color::RED),
                                                 style: Style {
                                                     align_self: AlignSelf::FlexStart,
-                                                    border: UiRect::all(Val::Px(1.0)),
-                                                    // justify_content: JustifyContent::FlexStart,
                                                     ..default()
                                                 },
                                                 ..default()
@@ -193,7 +181,7 @@ fn on_resize_window(
         Ok(mut floor_plant_transform) => {
             for resize in resize_reader.read() {
                 // When resolution is being changed
-                info!(
+                debug!(
                     "Resizing floor plant to {:?} x {:?}",
                     resize.height, resize.width
                 );

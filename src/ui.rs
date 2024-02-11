@@ -70,7 +70,6 @@ fn buttons_setup(
         .insert(RootUINode)
         .with_children(|parent| {
             // For each map, create a button like this
-            // Para cada MapBundle, criar um botão
             for (name, ()) in map_query.iter() {
                 info!("Creating button for map: {:?}", name);
                 parent
