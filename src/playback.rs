@@ -26,7 +26,7 @@ use bevy::{
     window::{Window, WindowResized},
 };
 
-use crate::{maps::FloorPlant, AppState};
+use crate::{maps::FloorPlant, ragdoll::RagdollPlugin, AppState};
 
 pub struct PlaybackPlugin;
 
@@ -43,6 +43,7 @@ impl Plugin for PlaybackPlugin {
             );
         //TODO: .add_systems(OnExit(AppState::MainMenu), playback_cleanup);
 
+        app.add_plugins(RagdollPlugin);
         app.add_event::<MapSelectEvent>();
     }
 }

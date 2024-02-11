@@ -1,6 +1,7 @@
 mod diagnostics;
 mod maps;
 mod playback;
+mod ragdoll;
 mod ui;
 
 use bevy::{app::App, ecs::schedule::States, DefaultPlugins};
