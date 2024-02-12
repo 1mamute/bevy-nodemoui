@@ -1,5 +1,6 @@
 mod diagnostics;
 mod maps;
+mod mouse;
 mod playback;
 mod ragdoll;
 mod ui;
@@ -16,6 +17,7 @@ use bevy::{
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use maps::MapPlugin;
+use mouse::MousePlugin;
 use playback::PlaybackPlugin;
 use ui::UIPlugin;
 
@@ -51,6 +53,7 @@ fn main() {
 
     app.add_plugins(MapPlugin);
     app.add_plugins(UIPlugin);
+    app.add_plugins(MousePlugin);
     app.add_plugins(PlaybackPlugin);
     app.add_plugins(WorldInspectorPlugin::new());
 

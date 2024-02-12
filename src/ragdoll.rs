@@ -6,25 +6,22 @@ use bevy::{
         component::Component,
         entity::Entity,
         event::{Event, EventReader, EventWriter},
-        query::{QuerySingleError, With},
+        query::With,
         schedule::{common_conditions::in_state, IntoSystemConfigs, OnEnter, OnExit},
         system::{Commands, Query, Res, ResMut, Resource},
     },
     hierarchy::{BuildChildren, DespawnRecursiveExt, Parent},
     log::info,
-    math::Vec2,
     prelude::{default, SpatialBundle},
     render::{
-        camera::Camera,
         color::Color,
         mesh::{shape, Mesh},
     },
     sprite::{ColorMaterial, MaterialMesh2dBundle},
-    transform::components::{GlobalTransform, Transform},
-    window::{CursorMoved, PrimaryWindow, Window},
+    transform::components::Transform,
 };
 
-use crate::{AppState, MainCamera};
+use crate::{mouse::MouseCoordinates, AppState};
 
 pub struct RagdollPlugin;
 
@@ -35,12 +32,13 @@ impl Plugin for RagdollPlugin {
             .add_systems(Update, ragdoll_spawn.run_if(in_state(AppState::Playback)));
         app.add_systems(OnExit(AppState::Playback), ragdoll_cleanup);
 
-        app.init_resource::<MouseCoordinates>();
+        app.add_event::<RagdollHoverEvent>();
+        app.init_resource::<MouseState>();
         app.add_systems(
             Update,
             (
-                ragdoll_select_event_system.run_if(in_state(AppState::Playback)),
-                cursor_position_to_world.run_if(in_state(AppState::Playback)),
+                ragdoll_hover_system.run_if(in_state(AppState::Playback)),
+                detect_mouse_over_entity.run_if(in_state(AppState::Playback)),
             ),
         );
     }
@@ -119,89 +117,68 @@ fn ragdoll_cleanup(mut commands: Commands, query: Query<Entity, With<PlayerName>
     }
 }
 
-#[derive(Event)]
-pub struct RagdollSelectEvent(pub Entity);
+#[derive(Default, Resource)]
+struct MouseState {
+    over_entity: Option<Entity>,
+}
 
-fn ragdoll_select_event_system(
-    ragdoll_query: Query<(Entity, &Transform, &RagdollRadius)>,
+#[derive(Event)]
+pub struct RagdollHoverEvent(pub Option<Entity>);
+
+fn ragdoll_hover_system(
+    mut ragdoll_hover_event: EventReader<RagdollHoverEvent>,
+    mut mouse_state: ResMut<MouseState>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     ragdoll_border_query: Query<(&mut Handle<ColorMaterial>, &Parent), With<RagdollBorder>>,
-    mouse_coords: Res<MouseCoordinates>,
-    // mouse_button_input_events: EventReader<MouseButtonInput>,
-    mut cursor_moved_events: EventReader<CursorMoved>,
 ) {
-    // for event in mouse_button_input_events.read() {
-    //     info!("{:?}", event);
-    // }
-
-    for event in cursor_moved_events.read() {
-        let cursor_pos = mouse_coords.0;
-        for (entity, transform, ragdoll_radius) in ragdoll_query.iter() {
-            let ragdoll_pos = transform.translation.truncate(); // Vec3 to Vec2
-            let distance = cursor_pos.distance(ragdoll_pos);
-
-            let is_mouse_over = distance <= ragdoll_radius.radius;
+    for event in ragdoll_hover_event.read() {
+        // Hide the border of the previous entity, if there's any
+        if let Some(old_entity) = mouse_state.over_entity {
             if let Some((border_material_handle, _)) = ragdoll_border_query
                 .iter()
-                .find(|(_, parent)| parent.get() == entity)
+                .find(|(_, parent)| parent.get() == old_entity)
             {
-                // Acesse o material atual
                 if let Some(material) = materials.get_mut(border_material_handle) {
-                    // Verifique se a atualização é necessária
-                    let desired_color = if is_mouse_over {
-                        RAGDOLL_BORDER_COLOR
-                    } else {
-                        Color::NONE
-                    };
-                    if material.color != desired_color {
-                        material.color = desired_color;
-                    }
+                    material.color = Color::NONE;
                 }
             }
         }
+
+        // Paint the border of the new entity, if there's any
+        if let Some(new_entity) = event.0 {
+            if let Some((border_material_handle, _)) = ragdoll_border_query
+                .iter()
+                .find(|(_, parent)| parent.get() == new_entity)
+            {
+                if let Some(material) = materials.get_mut(border_material_handle) {
+                    material.color = RAGDOLL_BORDER_COLOR;
+                }
+            }
+        }
+
+        // Update the mouse state anyway
+        mouse_state.over_entity = event.0;
     }
 }
 
-/// We will store the world position of the mouse cursor here.
-#[derive(Resource, Default)]
-struct MouseCoordinates(Vec2);
-
-fn cursor_position_to_world(
-    mut mouse_coords: ResMut<MouseCoordinates>,
-    // query to get the window (so we can read the current cursor position)
-    q_window: Query<&Window, With<PrimaryWindow>>,
-    // query to get camera transform
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+fn detect_mouse_over_entity(
+    mouse_coords: Res<MouseCoordinates>,
+    ragdoll_query: Query<(Entity, &Transform, &RagdollRadius)>,
+    mouse_state: ResMut<MouseState>,
+    mut event_writer: EventWriter<RagdollHoverEvent>,
 ) {
-    // get the camera info and transform
-    // assuming there is exactly one main camera entity, so Query::get_single() is OK
-    let (camera, camera_transform) = match q_camera.get_single() {
-        Ok((camera, camera_transform)) => (camera, camera_transform),
-        Err(QuerySingleError::NoEntities(_)) => {
-            panic!("Error: There is no primary camera!");
-        }
-        Err(QuerySingleError::MultipleEntities(_)) => {
-            panic!("Error: There is more than one primary camera!");
-        }
-    };
+    let mut current_over_entity: Option<Entity> = None;
 
-    // There is only one primary window, so we can similarly get it from the query:
-    let window = match q_window.get_single() {
-        Ok(window) => window,
-        Err(QuerySingleError::NoEntities(_)) => {
-            panic!("Error: There is no primary window!");
-        }
-        Err(QuerySingleError::MultipleEntities(_)) => {
-            panic!("Error: There is more than one primary window!");
-        }
-    };
+    for (entity, transform, ragdoll_radius) in ragdoll_query.iter() {
+        let distance = mouse_coords.0.distance(transform.translation.truncate());
 
-    // check if the cursor is inside the window and get its position then ask bevy to convert into world coordinates
-    if let Some(world_position) = window
-        .cursor_position()
-        .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
-    {
-        mouse_coords.0 = world_position;
-        // debug!("World coords: {}/{}", world_position.x, world_position.y);
+        if distance <= ragdoll_radius.radius {
+            current_over_entity = Some(entity);
+            break;
+        }
+    }
+
+    if current_over_entity != mouse_state.over_entity {
+        event_writer.send(RagdollHoverEvent(current_over_entity));
     }
 }
