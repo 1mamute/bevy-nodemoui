@@ -65,14 +65,15 @@ struct RagdollRadius {
 #[derive(Component)]
 struct RagdollBorder;
 
+const RAGDOLL_RADIUS: f32 = 7.;
+const RAGDOLL_BORDER_COLOR: Color = Color::RED;
+
 fn ragdoll_spawn(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut event_reader: EventReader<RagdollSpawnEvent>,
 ) {
-    const RAGDOLL_RADIUS: f32 = 7.;
-
     for event in event_reader.read() {
         info!("Received RagdownSpawnEvent");
 
@@ -95,15 +96,17 @@ fn ragdoll_spawn(
         // TODO: fix border blinking and appearing above ragdoll
         commands.entity(ragdoll).with_children(|parent| {
             parent
-                .spawn(MaterialMesh2dBundle {
+                // Necessary to "anchor" the border to the ragdoll circle
+                // https://bevy-cheatbook.github.io/fundamentals/hierarchy.html
+                .spawn(SpatialBundle { ..default() })
+                .insert(MaterialMesh2dBundle {
                     mesh: meshes
                         .add(shape::Circle::new(RAGDOLL_RADIUS * 1.15).into())
                         .into(), // Slightly larger than the ragdoll
                     material: materials.add(ColorMaterial::from(Color::NONE)), // Initially transparent
-                    transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                    transform: Transform::from_xyz(0.0, 0.0, -1.0),
                     ..default()
                 })
-                .insert(SpatialBundle { ..default() })
                 .insert(RagdollBorder);
         });
     }
@@ -122,7 +125,7 @@ pub struct RagdollSelectEvent(pub Entity);
 fn ragdoll_select_event_system(
     ragdoll_query: Query<(Entity, &Transform, &RagdollRadius)>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut ragdoll_border_query: Query<(&mut Handle<ColorMaterial>, &Parent), With<RagdollBorder>>,
+    ragdoll_border_query: Query<(&mut Handle<ColorMaterial>, &Parent), With<RagdollBorder>>,
     mouse_coords: Res<MouseCoordinates>,
     // mouse_button_input_events: EventReader<MouseButtonInput>,
     mut cursor_moved_events: EventReader<CursorMoved>,
@@ -138,16 +141,22 @@ fn ragdoll_select_event_system(
             let distance = cursor_pos.distance(ragdoll_pos);
 
             let is_mouse_over = distance <= ragdoll_radius.radius;
-            if let Some((mut border_material_handle, _)) = ragdoll_border_query
-                .iter_mut()
+            if let Some((border_material_handle, _)) = ragdoll_border_query
+                .iter()
                 .find(|(_, parent)| parent.get() == entity)
             {
-                let material = if is_mouse_over {
-                    Color::RED // Muda para preto se o mouse estiver sobre
-                } else {
-                    Color::NONE // Muda para invisível ou cor do fundo quando o mouse não estiver sobre
-                };
-                *border_material_handle = materials.add(ColorMaterial::from(material));
+                // Acesse o material atual
+                if let Some(material) = materials.get_mut(border_material_handle) {
+                    // Verifique se a atualização é necessária
+                    let desired_color = if is_mouse_over {
+                        RAGDOLL_BORDER_COLOR
+                    } else {
+                        Color::NONE
+                    };
+                    if material.color != desired_color {
+                        material.color = desired_color;
+                    }
+                }
             }
         }
     }
