@@ -10,20 +10,19 @@ use bevy::{
         schedule::{common_conditions::in_state, IntoSystemConfigs, OnEnter},
         system::{Commands, Query, Res},
     },
-    gizmos::gizmos::Gizmos,
     hierarchy::BuildChildren,
     log::{debug, info},
     math::Vec3,
     prelude::default,
-    render::{camera::Camera, color::Color, texture::Image},
+    render::{color::Color, texture::Image},
     sprite::SpriteBundle,
     text::TextStyle,
-    transform::components::{GlobalTransform, Transform},
+    transform::components::{Transform},
     ui::{
         node_bundles::{NodeBundle, TextBundle},
         AlignContent, AlignItems, AlignSelf, FlexDirection, JustifyContent, Style, Val,
     },
-    window::{Window, WindowResized},
+    window::{WindowResized},
 };
 
 use crate::{maps::FloorPlant, ragdoll::RagdollPlugin, AppState};
@@ -36,7 +35,6 @@ impl Plugin for PlaybackPlugin {
             .add_systems(
                 Update,
                 (
-                    draw_cursor.run_if(in_state(AppState::Playback)),
                     update_selected_map_on_event.run_if(in_state(AppState::Playback)),
                     on_resize_window.run_if(in_state(AppState::Playback)),
                 ),
@@ -151,25 +149,6 @@ fn update_selected_map_on_event(
             }
         };
     }
-}
-
-fn draw_cursor(
-    camera_query: Query<(&Camera, &GlobalTransform)>,
-    windows: Query<&Window>,
-    mut gizmos: Gizmos,
-) {
-    let (camera, camera_transform) = camera_query.single();
-
-    let Some(cursor_position) = windows.single().cursor_position() else {
-        return;
-    };
-
-    // Calculate a world position based on the cursor's position.
-    let Some(point) = camera.viewport_to_world_2d(camera_transform, cursor_position) else {
-        return;
-    };
-
-    gizmos.circle_2d(point, 10., Color::WHITE);
 }
 
 // This system shows how to respond to a window being resized.

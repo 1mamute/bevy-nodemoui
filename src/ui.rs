@@ -1,8 +1,7 @@
 use bevy::{
-    app::{App, Plugin, Startup, Update},
+    app::{App, Plugin, Update},
     asset::AssetServer,
     core::Name,
-    core_pipeline::core_2d::Camera2dBundle,
     ecs::{
         component::Component,
         entity::Entity,
@@ -31,7 +30,6 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(WinitSettings::desktop_app())
-            .add_systems(Startup, setup)
             .add_systems(OnEnter(AppState::MainMenu), buttons_setup)
             .add_systems(Update, buttons_system.run_if(in_state(AppState::MainMenu)))
             .add_systems(OnExit(AppState::MainMenu), buttons_cleanup);
@@ -41,10 +39,6 @@ impl Plugin for UIPlugin {
 const PRESSED_BUTTON: Color = Color::rgb(1.0, 0.65, 0.65);
 const HOVERED_BUTTON: Color = Color::rgb(0.8, 0.65, 0.65);
 const NORMAL_BUTTON: Color = Color::rgb(0.65, 0.65, 0.65);
-
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
-}
 
 #[derive(Component)]
 struct RootUINode;

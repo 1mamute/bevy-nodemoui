@@ -4,7 +4,16 @@ mod playback;
 mod ragdoll;
 mod ui;
 
-use bevy::{app::App, ecs::schedule::States, DefaultPlugins};
+use bevy::{
+    app::{App, Startup},
+    core_pipeline::core_2d::Camera2dBundle,
+    ecs::{
+        component::Component,
+        schedule::States,
+        system::{Commands},
+    },
+    DefaultPlugins,
+};
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -25,6 +34,7 @@ fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins);
     app.add_state::<AppState>();
+    app.add_systems(Startup, setup);
 
     // this code is compiled only if debug assertions are disabled (release mode)
     #[cfg(not(debug_assertions))]
@@ -41,4 +51,12 @@ fn main() {
     app.add_plugins(WorldInspectorPlugin::new());
 
     app.run();
+}
+
+/// Used to help identify our main camera
+#[derive(Component)]
+struct MainCamera;
+
+fn setup(mut commands: Commands) {
+    commands.spawn((Camera2dBundle::default(), MainCamera));
 }
