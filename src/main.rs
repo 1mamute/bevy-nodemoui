@@ -5,13 +5,11 @@ mod ragdoll;
 mod ui;
 
 use bevy::{
-    app::{App, Startup},
+    app::{App, PluginGroup, Startup},
     core_pipeline::core_2d::Camera2dBundle,
-    ecs::{
-        component::Component,
-        schedule::States,
-        system::{Commands},
-    },
+    ecs::{component::Component, schedule::States, system::Commands},
+    prelude::default,
+    window::{PresentMode, Window, WindowPlugin},
     DefaultPlugins,
 };
 
@@ -32,7 +30,13 @@ enum AppState {
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins);
+    app.add_plugins(DefaultPlugins.set(WindowPlugin {
+        primary_window: Some(Window {
+            present_mode: PresentMode::AutoNoVsync,
+            ..default()
+        }),
+        ..default()
+    }));
     app.add_state::<AppState>();
     app.add_systems(Startup, setup);
 

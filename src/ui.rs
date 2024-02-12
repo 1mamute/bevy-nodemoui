@@ -29,7 +29,7 @@ pub struct UIPlugin;
 
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(WinitSettings::desktop_app())
+        app.insert_resource(WinitSettings::game())
             .add_systems(OnEnter(AppState::MainMenu), buttons_setup)
             .add_systems(Update, buttons_system.run_if(in_state(AppState::MainMenu)))
             .add_systems(OnExit(AppState::MainMenu), buttons_cleanup);

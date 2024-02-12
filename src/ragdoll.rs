@@ -1,6 +1,6 @@
 use bevy::{
     app::{App, Plugin, Update},
-    asset::Assets,
+    asset::{Assets, Handle},
     core::Name,
     ecs::{
         component::Component,
@@ -10,10 +10,10 @@ use bevy::{
         schedule::{common_conditions::in_state, IntoSystemConfigs, OnEnter, OnExit},
         system::{Commands, Query, Res, ResMut, Resource},
     },
-    hierarchy::DespawnRecursiveExt,
+    hierarchy::{BuildChildren, DespawnRecursiveExt, Parent},
     log::info,
     math::Vec2,
-    prelude::default,
+    prelude::{default, SpatialBundle},
     render::{
         camera::Camera,
         color::Color,
@@ -62,6 +62,9 @@ struct RagdollRadius {
     radius: f32,
 }
 
+#[derive(Component)]
+struct RagdollBorder;
+
 fn ragdoll_spawn(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -74,18 +77,35 @@ fn ragdoll_spawn(
         info!("Received RagdownSpawnEvent");
 
         // Spawn Circle
-        commands
+        let ragdoll = commands
             .spawn(MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Circle::new(RAGDOLL_RADIUS).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::PURPLE)),
-                transform: Transform::from_xyz(-150.0, 0.0, 1.0),
+                transform: Transform::from_xyz(-150.0, 0.0, 2.0),
                 ..default()
             })
             .insert(event.0.clone())
             .insert(PlayerName(Name::new("f0rest")))
             .insert(RagdollRadius {
                 radius: RAGDOLL_RADIUS,
-            });
+            })
+            .id();
+
+        // Border circle
+        // TODO: fix border blinking and appearing above ragdoll
+        commands.entity(ragdoll).with_children(|parent| {
+            parent
+                .spawn(MaterialMesh2dBundle {
+                    mesh: meshes
+                        .add(shape::Circle::new(RAGDOLL_RADIUS * 1.15).into())
+                        .into(), // Slightly larger than the ragdoll
+                    material: materials.add(ColorMaterial::from(Color::NONE)), // Initially transparent
+                    transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                    ..default()
+                })
+                .insert(SpatialBundle { ..default() })
+                .insert(RagdollBorder);
+        });
     }
 }
 
@@ -101,6 +121,8 @@ pub struct RagdollSelectEvent(pub Entity);
 
 fn ragdoll_select_event_system(
     ragdoll_query: Query<(Entity, &Transform, &RagdollRadius)>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut ragdoll_border_query: Query<(&mut Handle<ColorMaterial>, &Parent), With<RagdollBorder>>,
     mouse_coords: Res<MouseCoordinates>,
     // mouse_button_input_events: EventReader<MouseButtonInput>,
     mut cursor_moved_events: EventReader<CursorMoved>,
@@ -110,13 +132,22 @@ fn ragdoll_select_event_system(
     // }
 
     for event in cursor_moved_events.read() {
-        let cursos_pos = mouse_coords.0;
+        let cursor_pos = mouse_coords.0;
         for (entity, transform, ragdoll_radius) in ragdoll_query.iter() {
-            let ragdoll_pos = transform.translation.truncate(); // Converte Vec3 para Vec2
-            let distance = cursos_pos.distance(ragdoll_pos);
+            let ragdoll_pos = transform.translation.truncate(); // Vec3 to Vec2
+            let distance = cursor_pos.distance(ragdoll_pos);
 
-            if distance <= ragdoll_radius.radius {
-                println!("Cursor above ragdoll: {:?}", entity);
+            let is_mouse_over = distance <= ragdoll_radius.radius;
+            if let Some((mut border_material_handle, _)) = ragdoll_border_query
+                .iter_mut()
+                .find(|(_, parent)| parent.get() == entity)
+            {
+                let material = if is_mouse_over {
+                    Color::RED // Muda para preto se o mouse estiver sobre
+                } else {
+                    Color::NONE // Muda para invisível ou cor do fundo quando o mouse não estiver sobre
+                };
+                *border_material_handle = materials.add(ColorMaterial::from(material));
             }
         }
     }
