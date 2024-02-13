@@ -28,19 +28,19 @@ pub struct RagdollPlugin;
 impl Plugin for RagdollPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<RagdollSpawnEvent>();
-        app.add_systems(OnEnter(AppState::Playback), ragdoll_setup)
-            .add_systems(Update, ragdoll_spawn.run_if(in_state(AppState::Playback)));
-        app.add_systems(OnExit(AppState::Playback), ragdoll_cleanup);
-
-        app.add_event::<RagdollHoverEvent>();
-        app.init_resource::<MouseState>();
+        app.add_systems(OnEnter(AppState::Playback), ragdoll_setup);
         app.add_systems(
             Update,
             (
                 ragdoll_hover_system.run_if(in_state(AppState::Playback)),
                 detect_mouse_over_entity.run_if(in_state(AppState::Playback)),
+                ragdoll_spawn.run_if(in_state(AppState::Playback)),
             ),
         );
+        app.add_systems(OnExit(AppState::Playback), ragdoll_cleanup);
+
+        app.add_event::<RagdollHoverEvent>();
+        app.init_resource::<MouseState>();
     }
 }
 
@@ -53,7 +53,9 @@ fn ragdoll_setup(mut event_writer: EventWriter<RagdollSpawnEvent>) {
 }
 
 #[derive(Component)]
-struct PlayerName(Name);
+struct Player {
+    name: Name,
+}
 
 #[derive(Component)]
 struct RagdollRadius {
@@ -84,7 +86,9 @@ fn ragdoll_spawn(
                 ..default()
             })
             .insert(event.0.clone())
-            .insert(PlayerName(Name::new("f0rest")))
+            .insert(Player {
+                name: Name::new("f0rest"),
+            })
             .insert(RagdollRadius {
                 radius: RAGDOLL_RADIUS,
             })
@@ -110,7 +114,7 @@ fn ragdoll_spawn(
     }
 }
 
-fn ragdoll_cleanup(mut commands: Commands, query: Query<Entity, With<PlayerName>>) {
+fn ragdoll_cleanup(mut commands: Commands, query: Query<Entity, With<Player>>) {
     info!("Cleanup ragdolls");
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
@@ -123,7 +127,9 @@ struct MouseState {
 }
 
 #[derive(Event)]
-pub struct RagdollHoverEvent(pub Option<Entity>);
+pub struct RagdollHoverEvent {
+    pub hovered_entity: Option<Entity>,
+}
 
 fn ragdoll_hover_system(
     mut ragdoll_hover_event: EventReader<RagdollHoverEvent>,
@@ -145,7 +151,7 @@ fn ragdoll_hover_system(
         }
 
         // Paint the border of the new entity, if there's any
-        if let Some(new_entity) = event.0 {
+        if let Some(new_entity) = event.hovered_entity {
             if let Some((border_material_handle, _)) = ragdoll_border_query
                 .iter()
                 .find(|(_, parent)| parent.get() == new_entity)
@@ -157,7 +163,7 @@ fn ragdoll_hover_system(
         }
 
         // Update the mouse state anyway
-        mouse_state.over_entity = event.0;
+        mouse_state.over_entity = event.hovered_entity;
     }
 }
 
@@ -179,6 +185,8 @@ fn detect_mouse_over_entity(
     }
 
     if current_over_entity != mouse_state.over_entity {
-        event_writer.send(RagdollHoverEvent(current_over_entity));
+        event_writer.send(RagdollHoverEvent {
+            hovered_entity: current_over_entity,
+        });
     }
 }
