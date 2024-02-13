@@ -13,12 +13,11 @@ use bevy::{
     log::{debug, info},
     math::Vec3,
     prelude::default,
-    render::{color::Color, texture::Image},
+    render::{texture::Image},
     sprite::SpriteBundle,
-    text::TextStyle,
     transform::components::Transform,
     ui::{
-        node_bundles::{NodeBundle, TextBundle},
+        node_bundles::{NodeBundle},
         AlignSelf, Style,
     },
     window::WindowResized,
@@ -37,7 +36,7 @@ impl Plugin for FloorPlantPlugin {
         app.add_systems(
             Update,
             (
-                update_selected_map_on_event.run_if(in_state(AppState::Playback)),
+                draw_floor_plant_on_map_select.run_if(in_state(AppState::Playback)),
                 on_resize_window.run_if(in_state(AppState::Playback)),
             ),
         );
@@ -45,7 +44,7 @@ impl Plugin for FloorPlantPlugin {
     }
 }
 
-fn update_selected_map_on_event(
+fn draw_floor_plant_on_map_select(
     mut event_reader: EventReader<MapSelectEvent>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -53,7 +52,7 @@ fn update_selected_map_on_event(
     map_query: Query<(&Name, &FloorPlant)>,
 ) {
     for event in event_reader.read() {
-        info!("update_selected_map_on_event received");
+        info!("draw_floor_plant_on_map_select received");
 
         match root_node_query.get_single() {
             Ok(root_node_entity) => {
@@ -91,25 +90,6 @@ fn update_selected_map_on_event(
                                             texture: map_floor_plant.handle.clone(),
                                             ..default()
                                         });
-
-                                    // Map Name
-                                    parent
-                                        .spawn(NodeBundle {
-                                            style: Style {
-                                                align_self: AlignSelf::FlexStart,
-                                                ..default()
-                                            },
-                                            ..default()
-                                        })
-                                        .insert(TextBundle::from_section(
-                                            // Map Name
-                                            map_name.as_str(),
-                                            TextStyle {
-                                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                                                font_size: 20.0,
-                                                color: Color::WHITE,
-                                            },
-                                        ));
                                 });
                         }
                     });

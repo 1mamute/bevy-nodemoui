@@ -1,5 +1,6 @@
 mod floor_plant;
 mod ragdoll;
+mod ui;
 
 use bevy::{
     app::{App, Plugin, Update},
@@ -34,6 +35,7 @@ impl Plugin for PlaybackPlugin {
         //TODO: .add_systems(OnExit(AppState::MainMenu), playback_cleanup);
         app.add_plugins(ragdoll::RagdollPlugin);
         app.add_plugins(floor_plant::FloorPlantPlugin);
+        app.add_plugins(ui::PlaybackUIPlugin);
         app.add_event::<MapSelectEvent>();
     }
 }
