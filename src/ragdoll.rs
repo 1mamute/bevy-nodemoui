@@ -128,7 +128,7 @@ struct MouseState {
 
 #[derive(Event)]
 pub struct RagdollHoverEvent {
-    pub hovered_entity: Option<Entity>,
+    hovered_entity: Option<Entity>,
 }
 
 fn ragdoll_hover_system(

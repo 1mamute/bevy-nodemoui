@@ -17,12 +17,12 @@ use bevy::{
     render::{color::Color, texture::Image},
     sprite::SpriteBundle,
     text::TextStyle,
-    transform::components::{Transform},
+    transform::components::Transform,
     ui::{
         node_bundles::{NodeBundle, TextBundle},
         AlignContent, AlignItems, AlignSelf, FlexDirection, JustifyContent, Style, Val,
     },
-    window::{WindowResized},
+    window::WindowResized,
 };
 
 use crate::{maps::FloorPlant, ragdoll::RagdollPlugin, AppState};
