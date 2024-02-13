@@ -8,4 +8,17 @@
         "--all-targets",
         "--allow-dirty",
     ],
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml"
+    ],
 }

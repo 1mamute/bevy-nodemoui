@@ -3,7 +3,6 @@ mod main_menu;
 mod maps;
 mod mouse;
 mod playback;
-mod ragdoll;
 
 use bevy::{
     app::{App, PluginGroup, Startup},
@@ -17,12 +16,11 @@ use bevy::{
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
+use diagnostics::DiagnosticsPlugin;
 use main_menu::MainMenuPlugin;
 use maps::MapPlugin;
 use mouse::MousePlugin;
 use playback::PlaybackPlugin;
-
-use crate::diagnostics::DiagnosticsPlugin;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 enum AppState {
