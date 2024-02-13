@@ -8,7 +8,7 @@ use bevy::{
         event::{Event, EventReader, EventWriter},
         query::With,
         schedule::{common_conditions::in_state, IntoSystemConfigs, OnEnter, OnExit},
-        system::{Commands, Query, Res, ResMut, Resource},
+        system::{Commands, Query, Res, ResMut},
     },
     hierarchy::{BuildChildren, DespawnRecursiveExt, Parent},
     log::info,
@@ -21,7 +21,7 @@ use bevy::{
     transform::components::Transform,
 };
 
-use crate::{mouse::MouseCoordinates, AppState};
+use crate::{mouse::MouseCoordinates, playback::MouseState, AppState};
 
 pub struct RagdollPlugin;
 
@@ -40,7 +40,6 @@ impl Plugin for RagdollPlugin {
         app.add_systems(OnExit(AppState::Playback), ragdoll_cleanup);
 
         app.add_event::<RagdollHoverEvent>();
-        app.init_resource::<MouseState>();
     }
 }
 
@@ -119,11 +118,6 @@ fn ragdoll_cleanup(mut commands: Commands, query: Query<Entity, With<Player>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
     }
-}
-
-#[derive(Default, Resource)]
-struct MouseState {
-    over_entity: Option<Entity>,
 }
 
 #[derive(Event)]

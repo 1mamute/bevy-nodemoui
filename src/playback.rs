@@ -8,7 +8,7 @@ use bevy::{
         event::{Event, EventReader},
         query::{QuerySingleError, With},
         schedule::{common_conditions::in_state, IntoSystemConfigs, OnEnter},
-        system::{Commands, Query, Res},
+        system::{Commands, Query, Res, Resource},
     },
     hierarchy::BuildChildren,
     log::{debug, info},
@@ -31,14 +31,15 @@ pub struct PlaybackPlugin;
 
 impl Plugin for PlaybackPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::Playback), playback_setup)
-            .add_systems(
-                Update,
-                (
-                    update_selected_map_on_event.run_if(in_state(AppState::Playback)),
-                    on_resize_window.run_if(in_state(AppState::Playback)),
-                ),
-            );
+        app.init_resource::<MouseState>();
+        app.add_systems(OnEnter(AppState::Playback), playback_setup);
+        app.add_systems(
+            Update,
+            (
+                update_selected_map_on_event.run_if(in_state(AppState::Playback)),
+                on_resize_window.run_if(in_state(AppState::Playback)),
+            ),
+        );
         //TODO: .add_systems(OnExit(AppState::MainMenu), playback_cleanup);
 
         app.add_plugins(RagdollPlugin);
@@ -178,4 +179,9 @@ fn on_resize_window(
             println!("Error: There is more than one root_node_entity!");
         }
     };
+}
+
+#[derive(Default, Resource)]
+pub struct MouseState {
+    pub over_entity: Option<Entity>,
 }
