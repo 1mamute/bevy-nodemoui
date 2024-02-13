@@ -20,19 +20,20 @@ use bevy::{
         widget::Button,
         AlignItems, BackgroundColor, Interaction, JustifyContent, Style, UiRect, Val,
     },
-    winit::WinitSettings,
 };
 
 use crate::{maps::FloorPlant, playback::MapSelectEvent, AppState};
 
-pub struct UIPlugin;
+pub struct MainMenuPlugin;
 
-impl Plugin for UIPlugin {
+impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(WinitSettings::game())
-            .add_systems(OnEnter(AppState::MainMenu), buttons_setup)
-            .add_systems(Update, buttons_system.run_if(in_state(AppState::MainMenu)))
-            .add_systems(OnExit(AppState::MainMenu), buttons_cleanup);
+        app.add_systems(OnEnter(AppState::MainMenu), map_buttons_setup)
+            .add_systems(
+                Update,
+                map_select_buttons_system.run_if(in_state(AppState::MainMenu)),
+            )
+            .add_systems(OnExit(AppState::MainMenu), map_buttons_cleanup);
     }
 }
 
@@ -43,7 +44,7 @@ const NORMAL_BUTTON: Color = Color::rgb(0.65, 0.65, 0.65);
 #[derive(Component)]
 struct RootUINode;
 
-fn buttons_setup(
+fn map_buttons_setup(
     asset_server: Res<AssetServer>,
     mut commands: Commands,
     map_query: Query<(&Name, With<FloorPlant>)>,
@@ -94,7 +95,7 @@ fn buttons_setup(
         });
 }
 
-fn buttons_system(
+fn map_select_buttons_system(
     mut event_writer: EventWriter<MapSelectEvent>,
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
@@ -122,7 +123,10 @@ fn buttons_system(
     }
 }
 
-fn buttons_cleanup(mut commands: Commands, mut root_node_query: Query<Entity, With<RootUINode>>) {
+fn map_buttons_cleanup(
+    mut commands: Commands,
+    mut root_node_query: Query<Entity, With<RootUINode>>,
+) {
     info!("Leaving AppState::MainMenu and Despawning UI buttons for maps");
     for root_node in &mut root_node_query {
         commands.entity(root_node).despawn_recursive();

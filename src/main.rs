@@ -1,9 +1,9 @@
 mod diagnostics;
+mod main_menu;
 mod maps;
 mod mouse;
 mod playback;
 mod ragdoll;
-mod ui;
 
 use bevy::{
     app::{App, PluginGroup, Startup},
@@ -11,15 +11,16 @@ use bevy::{
     ecs::{component::Component, schedule::States, system::Commands},
     prelude::default,
     window::{PresentMode, Window, WindowPlugin},
+    winit::WinitSettings,
     DefaultPlugins,
 };
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
+use main_menu::MainMenuPlugin;
 use maps::MapPlugin;
 use mouse::MousePlugin;
 use playback::PlaybackPlugin;
-use ui::UIPlugin;
 
 use crate::diagnostics::DiagnosticsPlugin;
 
@@ -39,6 +40,7 @@ fn main() {
         }),
         ..default()
     }));
+    app.insert_resource(WinitSettings::game());
     app.add_state::<AppState>();
     app.add_systems(Startup, setup);
 
@@ -52,7 +54,7 @@ fn main() {
     }
 
     app.add_plugins(MapPlugin);
-    app.add_plugins(UIPlugin);
+    app.add_plugins(MainMenuPlugin);
     app.add_plugins(MousePlugin);
     app.add_plugins(PlaybackPlugin);
     app.add_plugins(WorldInspectorPlugin::new());
