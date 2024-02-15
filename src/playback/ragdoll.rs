@@ -18,7 +18,7 @@ use bevy::{
         mesh::{shape, Mesh},
     },
     sprite::{ColorMaterial, MaterialMesh2dBundle},
-    transform::components::Transform,
+    transform::components::{Transform},
 };
 
 use crate::{mouse::MouseCoordinates, playback::MouseState, AppState};
@@ -35,6 +35,7 @@ impl Plugin for RagdollPlugin {
                 ragdoll_hover_system.run_if(in_state(AppState::Playback)),
                 detect_mouse_over_entity.run_if(in_state(AppState::Playback)),
                 ragdoll_spawn.run_if(in_state(AppState::Playback)),
+                // print_ragdoll_transform.run_if(in_state(AppState::Playback)),
             ),
         );
         app.add_systems(OnExit(AppState::Playback), ragdoll_cleanup);
@@ -183,3 +184,19 @@ fn detect_mouse_over_entity(
         });
     }
 }
+
+// fn print_ragdoll_transform(
+//     ragdoll_query: Query<(&Player, &Transform)>,
+//     camera_query: Query<(&Camera, &GlobalTransform)>,
+// ) {
+//     for (player, transform) in ragdoll_query.iter() {
+//         let (camera, camera_transform) = camera_query.single();
+
+//         // Calculate a world position based on the cursor's position.
+//         if let Some(point) =
+//             camera.viewport_to_world_2d(camera_transform, transform.translation.truncate())
+//         {
+//             info!("{} entity position: {:?}", player.name, point);
+//         };
+//     }
+// }
