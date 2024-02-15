@@ -94,7 +94,6 @@ fn ragdoll_spawn(
             .id();
 
         // Border circle
-        // TODO: fix border blinking and appearing above ragdoll
         commands.entity(ragdoll).with_children(|parent| {
             parent
                 // Necessary to "anchor" the border to the ragdoll circle
