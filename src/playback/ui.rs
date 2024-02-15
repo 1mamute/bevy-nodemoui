@@ -62,26 +62,15 @@ fn draw_ui_on_map_select(
                                 },
                                 ..default()
                             })
-                            .with_children(|parent| {
+                            .insert(TextBundle::from_section(
                                 // Map Name
-                                parent
-                                    .spawn(NodeBundle {
-                                        style: Style {
-                                            align_self: AlignSelf::FlexStart,
-                                            ..default()
-                                        },
-                                        ..default()
-                                    })
-                                    .insert(TextBundle::from_section(
-                                        // Map Name
-                                        event.0.as_str(),
-                                        TextStyle {
-                                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                                            font_size: 20.0,
-                                            color: Color::WHITE,
-                                        },
-                                    ));
-                            });
+                                event.0.as_str(),
+                                TextStyle {
+                                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
+                            ));
                     });
             }
             Err(QuerySingleError::NoEntities(_)) => {

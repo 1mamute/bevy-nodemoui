@@ -1,25 +1,22 @@
 use bevy::{
     app::{App, Plugin, Update},
-    asset::{AssetServer, Handle},
+    asset::{Handle},
     core::Name,
     ecs::{
         entity::Entity,
         event::EventReader,
         query::{QuerySingleError, With},
         schedule::{common_conditions::in_state, IntoSystemConfigs, OnExit},
-        system::{Commands, Query, Res},
+        system::{Commands, Query},
     },
     hierarchy::{BuildChildren, DespawnRecursiveExt},
     log::{debug, info},
     math::Vec3,
     prelude::default,
-    render::{texture::Image},
+    render::texture::Image,
     sprite::SpriteBundle,
     transform::components::Transform,
-    ui::{
-        node_bundles::{NodeBundle},
-        AlignSelf, Style,
-    },
+    ui::{node_bundles::NodeBundle, AlignSelf, Style},
     window::WindowResized,
 };
 
@@ -47,7 +44,6 @@ impl Plugin for FloorPlantPlugin {
 fn draw_floor_plant_on_map_select(
     mut event_reader: EventReader<MapSelectEvent>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     root_node_query: Query<Entity, With<RootPlaybackNode>>,
     map_query: Query<(&Name, &FloorPlant)>,
 ) {
@@ -73,23 +69,10 @@ fn draw_floor_plant_on_map_select(
                                     },
                                     ..default()
                                 })
-                                .with_children(|parent| {
-                                    // Map Floor Plant
-                                    parent
-                                        .spawn(NodeBundle {
-                                            style: Style {
-                                                align_self: AlignSelf::FlexStart,
-                                                ..default()
-                                            },
-                                            ..default()
-                                        })
-                                        .insert(SpriteBundle {
-                                            transform: Transform::from_scale(Vec3::new(
-                                                1.0, 1.0, 1.0,
-                                            )),
-                                            texture: map_floor_plant.handle.clone(),
-                                            ..default()
-                                        });
+                                .insert(SpriteBundle {
+                                    transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0)),
+                                    texture: map_floor_plant.handle.clone(),
+                                    ..default()
                                 });
                         }
                     });
