@@ -1,6 +1,6 @@
 use bevy::{
     app::{App, Plugin, Update},
-    asset::{Handle},
+    asset::Handle,
     core::Name,
     ecs::{
         entity::Entity,
@@ -10,14 +10,14 @@ use bevy::{
         system::{Commands, Query},
     },
     hierarchy::{BuildChildren, DespawnRecursiveExt},
-    log::{debug, info},
+    log::{debug, error, info},
     math::Vec3,
     prelude::default,
     render::texture::Image,
     sprite::SpriteBundle,
     transform::components::Transform,
     ui::{node_bundles::NodeBundle, AlignSelf, Style},
-    window::WindowResized,
+    window::{Window, WindowResized},
 };
 
 use crate::{
@@ -46,9 +46,11 @@ fn draw_floor_plant_on_map_select(
     mut commands: Commands,
     root_node_query: Query<Entity, With<RootPlaybackNode>>,
     map_query: Query<(&Name, &FloorPlant)>,
+    mut windows: Query<&mut Window>,
 ) {
     for event in event_reader.read() {
         info!("draw_floor_plant_on_map_select received");
+        let window = windows.single_mut();
 
         match root_node_query.get_single() {
             Ok(root_node_entity) => {
@@ -70,7 +72,11 @@ fn draw_floor_plant_on_map_select(
                                     ..default()
                                 })
                                 .insert(SpriteBundle {
-                                    transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0)),
+                                    transform: Transform::from_scale(Vec3 {
+                                        x: window.height() / 1024_f32,
+                                        y: window.height() / 1024_f32,
+                                        z: 1.0,
+                                    }),
                                     texture: map_floor_plant.handle.clone(),
                                     ..default()
                                 });
@@ -78,10 +84,10 @@ fn draw_floor_plant_on_map_select(
                     });
             }
             Err(QuerySingleError::NoEntities(_)) => {
-                println!("Error: There is no root_node_entity!");
+                error!("Error: There is no root_node_entity!");
             }
             Err(QuerySingleError::MultipleEntities(_)) => {
-                println!("Error: There is more than one root_node_entity!");
+                error!("Error: There is more than one root_node_entity!");
             }
         };
     }
@@ -108,10 +114,10 @@ fn on_resize_window(
             }
         }
         Err(QuerySingleError::NoEntities(_)) => {
-            println!("Error: There is no root_node_entity!");
+            error!("Error: There is no root_node_entity!");
         }
         Err(QuerySingleError::MultipleEntities(_)) => {
-            println!("Error: There is more than one root_node_entity!");
+            error!("Error: There is more than one root_node_entity!");
         }
     };
 }
